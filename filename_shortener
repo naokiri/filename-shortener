@@ -1,3 +1,4 @@
 #!/bin/sh
 
-PIPENV_PIPFILE=~/src/filename-shortener/ pipenv run filename-shortener
+PATH_OF_SRC=~/src/filename-shortener
+PIPENV_PIPFILE=${PATH_OF_SRC}/Pipfile pipenv run python ${PATH_OF_SRC}/filename_shortener.py

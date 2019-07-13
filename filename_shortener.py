@@ -80,17 +80,27 @@ def apply_all(name: str) -> str:
 
 
 def main():
-    answer = ask_y_n("Shorten names under [{}] ?".format(Path.cwd().name))
+    answer = ask_y_n("Shorten names under [{}] ?".format(Path.cwd().as_uri()))
     if not answer:
         return
 
     for entry in Path.cwd().glob("**/*"):
+        entry = entry.resolve()
         if entry.is_file():
             old_name = entry.name
+            parent = entry.parent
             new_name = apply_all(old_name)
-            if len(new_name.encode('utf-8')) > 255:
-                print("{} is longer than 255byte?".format(new_name))
-            entry.rename(new_name)
+            #print("{} --> {}".format(old_name, new_name))
+            if old_name != new_name:
+                new_path = Path(parent).joinpath(new_name)
+                #print("Rename {} to {} ??".format(entry, new_path))
+                if new_path.exists():
+                    print("Failed. {} --> {} already exists.".format(entry, new_path))
+                else:
+                    print("Rename {} to {}".format(entry, new_path))
+                    if len(new_name.encode('utf-8')) > 255:
+                        print("{} is still longer than 255byte".format(new_name))
+                    #entry.rename(new_path)
 
 
 if __name__ == "__main__":
