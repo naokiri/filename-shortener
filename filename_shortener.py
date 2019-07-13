@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 from typing import Set, Callable
 
-from secret import more_removing_words
+from secret import more_removing_words, remove_vencoding_tag
 
 
 def ask_y_n(msg: str) -> bool:
@@ -68,13 +68,20 @@ def remove_words_func(more_banned_words: Set[str] = None) -> Callable[[str], str
     return lambda name: remove_words_pattern.sub("", name).strip()
 
 
+remove_date_6num_tag_pattern = re.compile(r'[\d{6}]')
+
+
+def remove_date_6num_tag(name: str) -> str:
+    return remove_date_6num_tag_pattern.sub("", name).strip()
+
+
 def strip(name: str) -> str:
     return name.strip()
 
 
 def apply_all(name: str) -> str:
     funs = [replace_spaces, replace_wide_brackets, remove_paren_appended, remove_paren_in_bracket,
-            remove_words_func(more_removing_words), strip]
+            remove_words_func(more_removing_words), remove_date_6num_tag, remove_vencoding_tag, strip]
 
     return reduce(lambda x, f: f(x), funs, name)
 
@@ -84,24 +91,30 @@ def main():
     if not answer:
         return
 
-    for entry in Path.cwd().glob("**/*"):
-        entry = entry.resolve()
-        if entry.is_file():
-            old_name = entry.name
-            parent = entry.parent
-            new_name = apply_all(old_name)
-            #print("{} --> {}".format(old_name, new_name))
-            if old_name != new_name:
-                new_path = Path(parent).joinpath(new_name)
-                #print("Rename {} to {} ??".format(entry, new_path))
-                if new_path.exists():
-                    print("Failed. {} --> {} already exists.".format(entry, new_path))
-                else:
-                    print("Rename {} to {}".format(entry, new_path))
-                    if len(new_name.encode('utf-8')) > 255:
-                        print("{} is still longer than 255byte".format(new_name))
-                    #entry.rename(new_path)
+    logpath = Path.cwd().joinpath("rename_result.txt")
+    if not logpath.exists():
+        logpath.touch()
 
+    with logpath.open(mode="a", buffering=1) as logfile:
+        for entry in Path.cwd().glob("**/*"):
+            entry = entry.resolve()
+            if entry.is_file():
+                old_name = entry.name
+                parent = entry.parent
+                new_name = apply_all(old_name)
+
+                if old_name != new_name:
+                    new_path = Path(parent).joinpath(new_name)
+                    if new_path.exists():
+                        logfile.write("Fail\t{} --> {}\tAlready exists\n".format(entry, new_path))
+                    else:
+                        if len(new_name.encode('utf-8')) > 255:
+                            logfile.write("Warning\t{} --> {}\tStill larger than 255\n".format(entry, new_path))
+                        else:
+                            logfile.write("Success\t{} --> {}\n".format(entry, new_path))
+                        entry.rename(new_path)
+
+    print("Done. Log: {}".format(logpath))
 
 if __name__ == "__main__":
     main()

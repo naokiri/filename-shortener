@@ -28,6 +28,10 @@ class Tests(TestCase):
         result = func("【絶版】 fuu.pdf")
         self.assertEqual("fuu.pdf", result)
 
+    def test_remove_date_6num_tag(self):
+        result = remove_date_6num_tag("[170127] hogehgoe")
+        self.assertEqual("", result)
+
     def test_apply_all(self):
         result = apply_all("")
         self.assertEqual("", result)
