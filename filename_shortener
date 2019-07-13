@@ -1,0 +1,3 @@
+#!/bin/sh
+
+PIPENV_PIPFILE=~/src/filename-shortener/ pipenv run filename-shortener
