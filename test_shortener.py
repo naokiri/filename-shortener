@@ -11,7 +11,6 @@ class Tests(TestCase):
     def test_remove_paren_in_bracket(self):
         result = remove_paren_in_bracket("[foo (hoge)] abc")
         self.assertEqual("[foo] abc", result)
-        self.assertEqual("foo", re.sub(r"\s", "foo", "　"))
         result = remove_paren_in_bracket("[ほげ　(補足)]　書名.epub")
         self.assertEqual("[ほげ]　書名.epub", result)
 
@@ -29,8 +28,10 @@ class Tests(TestCase):
         self.assertEqual("fuu.pdf", result)
 
     def test_remove_date_6num_tag(self):
-        result = remove_date_6num_tag("[170127] hogehgoe")
-        self.assertEqual("", result)
+        result = remove_date_6num_tag("[170127] hogehoge")
+        self.assertEqual("hogehoge", result)
+        result = remove_date_6num_tag("foo 11 ways to do.zip")
+        self.assertEqual("foo 11 ways to do.zip", result)
 
     def test_apply_all(self):
         result = apply_all("")

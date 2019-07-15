@@ -43,7 +43,7 @@ remove_paren_in_bracket_pattern = re.compile(r'\[(\S*)\s\(.*\)\]')
 
 
 def remove_paren_in_bracket(name: str) -> str:
-    return remove_paren_appended_pattern.sub("[\g<1>]", name)
+    return remove_paren_in_bracket_pattern.sub("[\g<1>]", name)
 
 
 remove_paren_appended_pattern = re.compile(r'(\S*)\s?[([]\S*[)\]](\.\S{3,4})')
@@ -68,7 +68,7 @@ def remove_words_func(more_banned_words: Set[str] = None) -> Callable[[str], str
     return lambda name: remove_words_pattern.sub("", name).strip()
 
 
-remove_date_6num_tag_pattern = re.compile(r'[\d{6}]')
+remove_date_6num_tag_pattern = re.compile(r'\[\d{6}\]')
 
 
 def remove_date_6num_tag(name: str) -> str:
@@ -115,6 +115,7 @@ def main():
                         entry.rename(new_path)
 
     print("Done. Log: {}".format(logpath))
+
 
 if __name__ == "__main__":
     main()
