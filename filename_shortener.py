@@ -39,6 +39,11 @@ def replace_wide_brackets(name: str) -> str:
             )
 
 
+def replace_wide_punctuation(name: str) -> str:
+    return (name.replace("、", ",")
+            .replace("，", ","))
+
+
 remove_paren_in_bracket_pattern = re.compile(r'\[(\S*)\s\(.*\)\]')
 
 
@@ -80,8 +85,9 @@ def strip(name: str) -> str:
 
 
 def apply_all(name: str) -> str:
-    funs = [replace_spaces, replace_wide_brackets, remove_paren_appended, remove_paren_in_bracket,
-            remove_words_func(more_removing_words), remove_date_6num_tag, remove_vencoding_tag, strip]
+    funs = [replace_spaces, replace_wide_brackets, replace_wide_punctuation, remove_paren_appended,
+            remove_paren_in_bracket, remove_words_func(more_removing_words), remove_date_6num_tag, remove_vencoding_tag,
+            strip]
 
     return reduce(lambda x, f: f(x), funs, name)
 
