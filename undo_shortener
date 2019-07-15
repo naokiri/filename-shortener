@@ -1,0 +1,4 @@
+#!/bin/sh
+
+PATH_OF_SRC=~/src/filename-shortener
+PIPENV_PIPFILE=${PATH_OF_SRC}/Pipfile pipenv run python ${PATH_OF_SRC}/undo_shortener.py
