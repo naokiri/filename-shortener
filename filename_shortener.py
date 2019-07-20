@@ -3,6 +3,7 @@
 
     スキャンした本のNAS引越しでファイル名も暗号化されるようなドライブに引越したところ、ファイル名長さ制限にひっかかったのをアドホックに修正するために作成
 """
+import sys
 from functools import reduce
 from pathlib import Path
 import re
@@ -41,21 +42,29 @@ def replace_wide_brackets(name: str) -> str:
 
 def replace_wide_punctuation(name: str) -> str:
     return (name.replace("、", ",")
-            .replace("，", ","))
+            .replace("，", ",")
+            .replace("：", ":"))
 
 
-remove_paren_in_bracket_pattern = re.compile(r'\[(\S*)\s\(.*\)\]')
+remove_paren_in_bracket_pattern = re.compile(r'\[([^()]*)\s\(.*\)]')
 
 
 def remove_paren_in_bracket(name: str) -> str:
     return remove_paren_in_bracket_pattern.sub("[\g<1>]", name)
 
 
-remove_paren_appended_pattern = re.compile(r'(\S*)\s?[([]\S*[)\]](\.\S{3,4})')
+remove_paren_appended_pattern = re.compile(r'(\S*)\s?[(][^()]*[)](\.\S{3,4})')
 
 
 def remove_paren_appended(name: str) -> str:
     return remove_paren_appended_pattern.sub("\g<1>\g<2>", name)
+
+
+remove_bracket_appended_pattern = re.compile(r'(\S*)\s?\[[^\[\]]*](\.\S{3,4})')
+
+
+def remove_bracket_appended(name: str) -> str:
+    return remove_bracket_appended_pattern.sub("\g<1>\g<2>", name)
 
 
 remove_words = {
@@ -85,11 +94,17 @@ def strip(name: str) -> str:
 
 
 def apply_all(name: str) -> str:
-    funs = [replace_spaces, replace_wide_brackets, replace_wide_punctuation, remove_paren_appended,
-            remove_paren_in_bracket, remove_words_func(more_removing_words), remove_date_6num_tag, remove_vencoding_tag,
+    funs = [replace_spaces, replace_wide_brackets, replace_wide_punctuation, remove_paren_in_bracket,
+            remove_paren_appended, remove_bracket_appended, remove_words_func(more_removing_words),
+            remove_date_6num_tag, remove_vencoding_tag,
             strip]
 
     return reduce(lambda x, f: f(x), funs, name)
+
+
+def alert_bad_char(name: str) -> str:
+    if ":" in name:
+        print("{} contains bad char :".format(name), file=sys.stderr)
 
 
 def main():
@@ -108,14 +123,15 @@ def main():
                 old_name = entry.name
                 parent = entry.parent
                 new_name = apply_all(old_name)
-
+                alert_bad_char(new_name)
+                
                 if old_name != new_name:
                     new_path = Path(parent).joinpath(new_name)
                     if new_path.exists():
                         logfile.write("Fail\t{} --> {}\tAlready exists\n".format(entry, new_path))
                     else:
-                        if len(new_name.encode('utf-8')) > 255:
-                            logfile.write("Warning\t{} --> {}\tStill larger than 255\n".format(entry, new_path))
+                        if len(new_name.encode('utf-8')) > 144:
+                            logfile.write("Warning\t{} --> {}\tStill larger than 144\n".format(entry, new_path))
                         else:
                             logfile.write("Success\t{} --> {}\n".format(entry, new_path))
                         entry.rename(new_path)

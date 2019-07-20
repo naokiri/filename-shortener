@@ -9,16 +9,23 @@ class Tests(TestCase):
         self.assertEqual("foo hoge bar", result)
 
     def test_remove_paren_in_bracket(self):
-        result = remove_paren_in_bracket("[foo (hoge)] abc")
-        self.assertEqual("[foo] abc", result)
+        result = remove_paren_in_bracket("[foo bar (hoge)] abc")
+        self.assertEqual("[foo bar] abc", result)
         result = remove_paren_in_bracket("[ほげ　(補足)]　書名.epub")
         self.assertEqual("[ほげ]　書名.epub", result)
 
     def test_remove_paren_appended(self):
         result = remove_paren_appended("hogehoge (rescanned).pdf")
         self.assertEqual("hogehoge.pdf", result)
-        result = remove_paren_appended("An important paper about fugafuga [2015-10-11].pdf")
+        result = remove_paren_appended("(piyo) [hoge] Foo bar baz (foo bar baz).pdf")
+        self.assertEqual("(piyo) [hoge] Foo bar baz.pdf", result)
+
+    def test_remove_bracket_appended(self):
+        result = remove_bracket_appended("An important paper about fugafuga [2015-10-11].pdf")
         self.assertEqual("An important paper about fugafuga.pdf", result)
+        result = remove_paren_appended("(piyo) [hoge fuga] Foo bar baz [foo bar baz].pdf")
+        self.assertEqual("(piyo) [hoge fuga] Foo bar baz [foo bar baz].pdf", result)
+
 
     def test_remove_words(self):
         func = remove_words_func({"絶版"})
